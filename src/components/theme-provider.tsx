@@ -19,6 +19,7 @@ import {
   type ThemeState,
 } from "../config/theme";
 import { applyThemeToElement } from "../lib/apply-theme";
+import { createLogoSvgDataUrl } from "../lib/logo-mark";
 import { persistTheme, readPersistedTheme } from "../lib/theme-storage";
 
 type Coords = { x: number; y: number };
@@ -50,6 +51,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       accent: themeState.accent,
       mode: themeState.currentMode,
     });
+
+    const primary = themeState.styles[themeState.currentMode].primary;
+    const faviconUrl = createLogoSvgDataUrl(primary);
+    const favicon =
+      document.querySelector<HTMLLinkElement>("link[rel='icon'][type='image/svg+xml']");
+
+    if (favicon) {
+      favicon.href = faviconUrl;
+    }
   }, [themeState]);
 
   const setTheme = useCallback((mode: ThemeMode) => {

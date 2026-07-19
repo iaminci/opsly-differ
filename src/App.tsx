@@ -1,5 +1,6 @@
 import CompareEnvironments from "./components/CompareEnvironments";
 import { AccentPicker } from "./components/accent-picker";
+import { Logo } from "./components/logo";
 import { ThemeToggle } from "./components/theme-toggle";
 
 export default function App() {
@@ -8,9 +9,7 @@ export default function App() {
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-              O
-            </div>
+            <Logo />
             <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
               Opsly Differ
             </h1>

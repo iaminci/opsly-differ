@@ -1,0 +1,11 @@
+export function createLogoSvg(stroke: string) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="96 96 320 320" fill="none">
+  <line x1="148" y1="204" x2="364" y2="204" stroke="${stroke}" stroke-width="36" stroke-linecap="round"/>
+  <line x1="148" y1="308" x2="364" y2="308" stroke="${stroke}" stroke-width="36" stroke-linecap="round"/>
+  <line x1="372" y1="148" x2="140" y2="364" stroke="${stroke}" stroke-width="36" stroke-linecap="round"/>
+</svg>`;
+}
+
+export function createLogoSvgDataUrl(stroke: string) {
+  return `data:image/svg+xml,${encodeURIComponent(createLogoSvg(stroke))}`;
+}
