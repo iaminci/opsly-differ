@@ -46,7 +46,6 @@ export function colorFormatter(
 export function isColorKey(key: string): boolean {
   return ![
     "font-sans",
-    "font-serif",
     "font-mono",
     "radius",
     "shadow-opacity",
@@ -55,6 +54,5 @@ export function isColorKey(key: string): boolean {
     "shadow-offset-x",
     "shadow-offset-y",
     "letter-spacing",
-    "spacing",
   ].includes(key);
 }

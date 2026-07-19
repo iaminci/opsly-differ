@@ -1,13 +1,15 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeftRight } from "lucide-react";
 import type { CompareMode, CompareOptions, CompareResult } from "../lib/types";
 import { DEFAULT_OPTIONS } from "../lib/types";
 import { compareEnvironments } from "../lib/compare";
 import { SAMPLES } from "../lib/samples";
 import { Button } from "./ui/button";
-import ModeSelector, { ModeDescription } from "./ModeSelector";
-import OptionsBar from "./OptionsBar";
+import ModeSelector from "./ModeSelector";
+import { CompareActions, OptionCheckboxes } from "./OptionsBar";
 import EditorPanel from "./EditorPanel";
 import DiffResults from "./DiffResults";
+import ResultsStatus from "./ResultsStatus";
 
 export default function CompareEnvironments() {
   const [mode, setMode] = useState<CompareMode>("env");
@@ -17,15 +19,26 @@ export default function CompareEnvironments() {
   const [labelA, setLabelA] = useState("");
   const [labelB, setLabelB] = useState("");
   const [result, setResult] = useState<CompareResult | null>(null);
+  const [hasCompared, setHasCompared] = useState(false);
+  const [compareCount, setCompareCount] = useState(0);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const runCompare = useCallback(() => {
     const compareResult = compareEnvironments(mode, inputA, inputB, options);
     setResult(compareResult);
+    setHasCompared(true);
+    setCompareCount((count) => count + 1);
   }, [mode, inputA, inputB, options]);
+
+  useEffect(() => {
+    if (compareCount === 0) return;
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [compareCount]);
 
   const handleModeChange = (newMode: CompareMode) => {
     setMode(newMode);
     setResult(null);
+    setHasCompared(false);
   };
 
   const loadSample = (side: "A" | "B") => {
@@ -46,6 +59,7 @@ export default function CompareEnvironments() {
     setLabelA(labelB);
     setLabelB(labelA);
     setResult(null);
+    setHasCompared(false);
   };
 
   const handleClear = () => {
@@ -54,39 +68,34 @@ export default function CompareEnvironments() {
     setLabelA("");
     setLabelB("");
     setResult(null);
+    setHasCompared(false);
   };
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-4 text-center sm:text-left">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-3">
-            <h2 className="max-w-3xl bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-3xl font-medium tracking-tight text-transparent sm:text-3xl">
-              Compare Environments
-            </h2>
-            <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
-              Diff two environments — .env, ConfigMap, YAML, and JSON. Processed
-              locally in your browser.
-            </p>
-          </div>
-          <Button variant="outline" onClick={loadBothSamples} className="shrink-0">
-            Try a sample →
-          </Button>
-        </div>
-        <ModeSelector mode={mode} onChange={handleModeChange} />
-        <ModeDescription mode={mode} />
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h2 className="text-3xl font-semibold tracking-tight">
+          Compare Environments
+        </h2>
+        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+          Diff .env, ConfigMap, YAML, and JSON locally in your browser.
+        </p>
       </div>
 
-      <OptionsBar
-        mode={mode}
-        options={options}
-        onChange={setOptions}
-        onCompare={runCompare}
-        onSwap={handleSwap}
-        onClear={handleClear}
-      />
+      <div className="grid grid-cols-1 items-center gap-4 lg:grid-cols-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <ModeSelector mode={mode} onChange={handleModeChange} />
+          <Button variant="outline" onClick={loadBothSamples} className="ml-20 shrink-0">
+            Load Sample
+          </Button>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <OptionCheckboxes options={options} onChange={setOptions} />
+          <CompareActions onCompare={runCompare} onClear={handleClear} />
+        </div>
+      </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="relative grid gap-4 lg:grid-cols-2">
         <EditorPanel
           side="A"
           label={labelA}
@@ -105,16 +114,43 @@ export default function CompareEnvironments() {
           onChange={setInputB}
           onSample={() => loadSample("B")}
         />
+
+        <Button
+          variant="outline"
+          size="icon"
+          type="button"
+          aria-label="Swap environments"
+          onClick={handleSwap}
+          className="absolute left-1/2 top-1/2 z-10 hidden h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background shadow-md lg:inline-flex"
+        >
+          <ArrowLeftRight className="h-4 w-4" />
+        </Button>
       </div>
 
-      {result && (
-        <DiffResults
+      <div className="flex justify-center lg:hidden">
+        <Button variant="outline" size="sm" onClick={handleSwap} className="gap-2">
+          <ArrowLeftRight className="h-4 w-4" />
+          Swap A ↔ B
+        </Button>
+      </div>
+
+      <div ref={resultsRef} className="scroll-mt-24 space-y-4">
+        <ResultsStatus
           result={result}
           labelA={labelA}
           labelB={labelB}
-          maskSecrets={options.maskSecrets}
+          hasCompared={hasCompared}
         />
-      )}
+
+        {result && (
+          <DiffResults
+            result={result}
+            labelA={labelA}
+            labelB={labelB}
+            maskSecrets={options.maskSecrets}
+          />
+        )}
+      </div>
     </div>
   );
 }

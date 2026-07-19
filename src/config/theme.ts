@@ -1,3 +1,9 @@
+import {
+  DEFAULT_ACCENT_ID,
+  getAccentOption,
+  normalizeAccentId,
+  type AccentId,
+} from "./accent-options";
 import { readPersistedTheme } from "../lib/theme-storage";
 
 export type ThemeMode = "light" | "dark";
@@ -5,7 +11,7 @@ export type ThemeMode = "light" | "dark";
 export type ThemeStyles = Record<string, string>;
 
 export interface ThemeState {
-  preset: string;
+  accent: AccentId;
   currentMode: ThemeMode;
   styles: {
     light: ThemeStyles;
@@ -15,7 +21,6 @@ export interface ThemeState {
 
 export const COMMON_STYLES = [
   "font-sans",
-  "font-serif",
   "font-mono",
   "radius",
   "shadow-opacity",
@@ -24,117 +29,128 @@ export const COMMON_STYLES = [
   "shadow-offset-x",
   "shadow-offset-y",
   "letter-spacing",
-  "spacing",
 ] as const;
 
-export const DEFAULT_FONT_SANS =
-  "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'";
-
-export const DEFAULT_FONT_SERIF =
-  'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif';
-
-export const FIRA_CODE_FONT =
-  "'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
-
-export const DEFAULT_FONT_MONO = FIRA_CODE_FONT;
-
-export const defaultLightThemeStyles: ThemeStyles = {
-  background: "oklch(1 0 0)",
-  foreground: "oklch(0.145 0 0)",
-  card: "oklch(1 0 0)",
-  "card-foreground": "oklch(0.145 0 0)",
-  popover: "oklch(1 0 0)",
-  "popover-foreground": "oklch(0.145 0 0)",
-  primary: "oklch(0.205 0 0)",
-  "primary-foreground": "oklch(0.985 0 0)",
-  secondary: "oklch(0.97 0 0)",
-  "secondary-foreground": "oklch(0.205 0 0)",
-  muted: "oklch(0.97 0 0)",
-  "muted-foreground": "oklch(0.556 0 0)",
-  accent: "oklch(0.97 0 0)",
-  "accent-foreground": "oklch(0.205 0 0)",
-  destructive: "oklch(0.577 0.245 27.325)",
-  "destructive-foreground": "oklch(1 0 0)",
-  border: "oklch(0.922 0 0)",
-  input: "oklch(0.922 0 0)",
-  ring: "oklch(0.708 0 0)",
-  "chart-1": "oklch(0.81 0.10 252)",
-  "chart-2": "oklch(0.62 0.19 260)",
-  "chart-3": "oklch(0.55 0.22 263)",
-  "chart-4": "oklch(0.49 0.22 264)",
-  "chart-5": "oklch(0.42 0.18 266)",
-  radius: "0.625rem",
-  sidebar: "oklch(0.985 0 0)",
-  "sidebar-foreground": "oklch(0.145 0 0)",
-  "sidebar-primary": "oklch(0.205 0 0)",
-  "sidebar-primary-foreground": "oklch(0.985 0 0)",
-  "sidebar-accent": "oklch(0.97 0 0)",
-  "sidebar-accent-foreground": "oklch(0.205 0 0)",
-  "sidebar-border": "oklch(0.922 0 0)",
-  "sidebar-ring": "oklch(0.708 0 0)",
-  "font-sans": DEFAULT_FONT_SANS,
-  "font-serif": DEFAULT_FONT_SERIF,
-  "font-mono": FIRA_CODE_FONT,
-  "shadow-color": "oklch(0 0 0)",
-  "shadow-opacity": "0.1",
+const baseLightThemeStyles: ThemeStyles = {
+  background: "#fcfcfc",
+  foreground: "#171717",
+  card: "#fcfcfc",
+  "card-foreground": "#171717",
+  popover: "#fcfcfc",
+  "popover-foreground": "#525252",
+  secondary: "#fdfdfd",
+  "secondary-foreground": "#171717",
+  muted: "#ededed",
+  "muted-foreground": "#202020",
+  accent: "#ededed",
+  "accent-foreground": "#202020",
+  destructive: "#ca3214",
+  "destructive-foreground": "#fffcfc",
+  border: "#dfdfdf",
+  input: "#f6f6f6",
+  "chart-2": "#3b82f6",
+  "chart-3": "#8b5cf6",
+  "chart-4": "#f59e0b",
+  "chart-5": "#10b981",
+  sidebar: "#fcfcfc",
+  "sidebar-foreground": "#707070",
+  "sidebar-accent": "#ededed",
+  "sidebar-accent-foreground": "#202020",
+  "sidebar-border": "#dfdfdf",
+  "font-sans": "Inter, sans-serif",
+  "font-mono": "JetBrains Mono, monospace",
+  radius: "0.5rem",
+  "shadow-color": "#000000",
+  "shadow-opacity": "0.17",
   "shadow-blur": "3px",
   "shadow-spread": "0px",
-  "shadow-offset-x": "0",
+  "shadow-offset-x": "0px",
   "shadow-offset-y": "1px",
-  "letter-spacing": "0em",
-  spacing: "0.25rem",
+  "letter-spacing": "0.025em",
 };
 
-export const defaultDarkThemeStyles: ThemeStyles = {
-  ...defaultLightThemeStyles,
-  background: "oklch(0.145 0 0)",
-  foreground: "oklch(0.985 0 0)",
-  card: "oklch(0.205 0 0)",
-  "card-foreground": "oklch(0.985 0 0)",
-  popover: "oklch(0.269 0 0)",
-  "popover-foreground": "oklch(0.985 0 0)",
-  primary: "oklch(0.922 0 0)",
-  "primary-foreground": "oklch(0.205 0 0)",
-  secondary: "oklch(0.269 0 0)",
-  "secondary-foreground": "oklch(0.985 0 0)",
-  muted: "oklch(0.269 0 0)",
-  "muted-foreground": "oklch(0.708 0 0)",
-  accent: "oklch(0.371 0 0)",
-  "accent-foreground": "oklch(0.985 0 0)",
-  destructive: "oklch(0.704 0.191 22.216)",
-  "destructive-foreground": "oklch(0.985 0 0)",
-  border: "oklch(0.275 0 0)",
-  input: "oklch(0.325 0 0)",
-  ring: "oklch(0.556 0 0)",
-  sidebar: "oklch(0.205 0 0)",
-  "sidebar-foreground": "oklch(0.985 0 0)",
-  "sidebar-primary": "oklch(0.488 0.243 264.376)",
-  "sidebar-primary-foreground": "oklch(0.985 0 0)",
-  "sidebar-accent": "oklch(0.269 0 0)",
-  "sidebar-accent-foreground": "oklch(0.985 0 0)",
-  "sidebar-border": "oklch(0.275 0 0)",
-  "sidebar-ring": "oklch(0.439 0 0)",
+const baseDarkThemeStyles: ThemeStyles = {
+  background: "#121212",
+  foreground: "#e2e8f0",
+  card: "#171717",
+  "card-foreground": "#e2e8f0",
+  popover: "#242424",
+  "popover-foreground": "#a9a9a9",
+  secondary: "#242424",
+  "secondary-foreground": "#fafafa",
+  muted: "#1f1f1f",
+  "muted-foreground": "#a2a2a2",
+  accent: "#313131",
+  "accent-foreground": "#fafafa",
+  destructive: "#541c15",
+  "destructive-foreground": "#ede9e8",
+  border: "#292929",
+  input: "#242424",
+  "chart-2": "#60a5fa",
+  "chart-3": "#a78bfa",
+  "chart-4": "#fbbf24",
+  "chart-5": "#2dd4bf",
+  sidebar: "#121212",
+  "sidebar-foreground": "#898989",
+  "sidebar-accent": "#313131",
+  "sidebar-accent-foreground": "#fafafa",
+  "sidebar-border": "#292929",
+  "font-sans": "Inter, sans-serif",
+  "font-mono": "JetBrains Mono, monospace",
+  radius: "0.5rem",
+  "shadow-color": "#000000",
+  "shadow-opacity": "0.17",
+  "shadow-blur": "3px",
+  "shadow-spread": "0px",
+  "shadow-offset-x": "0px",
+  "shadow-offset-y": "1px",
+  "letter-spacing": "0.025em",
 };
 
-export function getInitialThemeMode(): ThemeMode {
+export function buildThemeStyles(accentId: string): ThemeState["styles"] {
+  const accent = getAccentOption(accentId);
+
+  return {
+    light: {
+      ...baseLightThemeStyles,
+      ...accent.light,
+    },
+    dark: {
+      ...baseDarkThemeStyles,
+      ...accent.dark,
+    },
+  };
+}
+
+export function getSystemThemeMode(): ThemeMode {
   if (typeof window === "undefined") return "light";
-  const stored = readPersistedTheme();
-  if (stored?.mode) return stored.mode;
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
 }
 
-export function getInitialPreset(): string {
-  if (typeof window === "undefined") return "default";
-  return readPersistedTheme()?.preset ?? "default";
+export function getInitialThemeMode(): ThemeMode {
+  if (typeof window === "undefined") return "light";
+  const stored = readPersistedTheme()?.mode;
+  if (stored) return stored;
+  return getSystemThemeMode();
 }
 
-export const defaultThemeState: ThemeState = {
-  preset: "default",
-  styles: {
-    light: defaultLightThemeStyles,
-    dark: defaultDarkThemeStyles,
-  },
-  currentMode: getInitialThemeMode(),
-};
+export function getInitialAccent(): AccentId {
+  if (typeof window === "undefined") return DEFAULT_ACCENT_ID;
+  const stored = readPersistedTheme()?.accent;
+  return stored ? normalizeAccentId(stored) : DEFAULT_ACCENT_ID;
+}
+
+export function createThemeState(accent: AccentId, currentMode: ThemeMode): ThemeState {
+  return {
+    accent,
+    currentMode,
+    styles: buildThemeStyles(accent),
+  };
+}
+
+export const defaultThemeState: ThemeState = createThemeState(
+  DEFAULT_ACCENT_ID,
+  "light"
+);

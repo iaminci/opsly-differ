@@ -23,13 +23,13 @@ const BUCKET_META: Record<
   },
   onlyB: {
     title: "Only in B",
-    colorClass: "text-chart-4",
-    dotClass: "bg-chart-4",
+    colorClass: "text-chart-3",
+    dotClass: "bg-chart-3",
   },
   changed: {
     title: "Changed",
-    colorClass: "text-destructive",
-    dotClass: "bg-destructive",
+    colorClass: "text-chart-4",
+    dotClass: "bg-chart-4",
   },
   same: {
     title: "Same",
@@ -206,7 +206,7 @@ export default function DiffResults({
   labelB,
   maskSecrets,
 }: DiffResultsProps) {
-  const [hideValues, setHideValues] = useState(false);
+  const [hideValues, setHideValues] = useState(true);
 
   if (!result) return null;
 
@@ -237,13 +237,9 @@ export default function DiffResults({
 
       {hasDiff && (
         <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => setHideValues((v) => !v)}
-            className="text-xs text-primary hover:underline"
-          >
+          <Button size="sm" onClick={() => setHideValues((v) => !v)}>
             {hideValues ? "Show values" : "Hide values"}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -289,50 +285,6 @@ export default function DiffResults({
           </p>
         )
       )}
-
-      {hasDiff && (
-        <SummaryBar result={result} labelA={labelA} labelB={labelB} />
-      )}
-    </div>
-  );
-}
-
-function SummaryBar({
-  result,
-  labelA,
-  labelB,
-}: {
-  result: CompareResult;
-  labelA: string;
-  labelB: string;
-}) {
-  const nameA = displayLabel(labelA, "A");
-  const nameB = displayLabel(labelB, "B");
-
-  return (
-    <div className="flex flex-wrap gap-4 rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">
-      <Stat label={`Only in ${nameA}`} count={result.onlyA.length} dotClass="bg-chart-2" />
-      <Stat label={`Only in ${nameB}`} count={result.onlyB.length} dotClass="bg-chart-4" />
-      <Stat label="Changed" count={result.changed.length} dotClass="bg-destructive" />
-      <Stat label="Same" count={result.same.length} dotClass="bg-chart-1" />
-    </div>
-  );
-}
-
-function Stat({
-  label,
-  count,
-  dotClass,
-}: {
-  label: string;
-  count: number;
-  dotClass: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className={cn("h-2 w-2 rounded-full", dotClass)} />
-      <span className="text-muted-foreground">{label}:</span>
-      <span className="font-semibold">{count}</span>
     </div>
   );
 }

@@ -8,27 +8,27 @@ import {
   type ReactNode,
 } from "react";
 import {
-  getInitialPreset,
+  accentOptions,
+  type AccentId,
+} from "../config/accent-options";
+import {
+  createThemeState,
+  getInitialAccent,
   getInitialThemeMode,
   type ThemeMode,
   type ThemeState,
 } from "../config/theme";
 import { applyThemeToElement } from "../lib/apply-theme";
 import { persistTheme, readPersistedTheme } from "../lib/theme-storage";
-import {
-  getPresetLabel,
-  getPresetThemeStyles,
-  resolveThemeState,
-} from "../lib/theme-preset-helper";
 
 type Coords = { x: number; y: number };
 
 interface ThemeContextValue {
   theme: ThemeMode;
-  preset: string;
-  presetLabel: string;
+  accent: AccentId;
+  accentLabel: string;
   setTheme: (theme: ThemeMode) => void;
-  setPreset: (presetId: string) => void;
+  setAccent: (accentId: AccentId) => void;
   toggleTheme: (coords?: Coords) => void;
 }
 
@@ -36,17 +36,9 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 function loadInitialState(): ThemeState {
   const stored = readPersistedTheme();
-  if (stored?.styles) {
-    return {
-      preset: stored.preset ?? "default",
-      currentMode: stored.mode,
-      styles: stored.styles,
-    };
-  }
-
-  const preset = stored?.preset ?? getInitialPreset();
-  const mode = stored?.mode ?? getInitialThemeMode();
-  return resolveThemeState(preset, mode);
+  const accent = stored?.accent ?? getInitialAccent();
+  const currentMode = stored?.mode ?? getInitialThemeMode();
+  return createThemeState(accent, currentMode);
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -55,9 +47,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     applyThemeToElement(themeState, document.documentElement);
     persistTheme({
+      accent: themeState.accent,
       mode: themeState.currentMode,
-      preset: themeState.preset,
-      styles: themeState.styles,
     });
   }, [themeState]);
 
@@ -65,12 +56,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState((prev) => ({ ...prev, currentMode: mode }));
   }, []);
 
-  const setPreset = useCallback((presetId: string) => {
-    setThemeState((prev) => ({
-      ...prev,
-      preset: presetId,
-      styles: getPresetThemeStyles(presetId),
-    }));
+  const setAccent = useCallback((accentId: AccentId) => {
+    setThemeState((prev) => createThemeState(accentId, prev.currentMode));
   }, []);
 
   const toggleTheme = useCallback((coords?: Coords) => {
@@ -99,16 +86,27 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const accentLabel =
+    accentOptions.find((option) => option.id === themeState.accent)?.label ??
+    themeState.accent;
+
   const value = useMemo(
     () => ({
       theme: themeState.currentMode,
-      preset: themeState.preset,
-      presetLabel: getPresetLabel(themeState.preset),
+      accent: themeState.accent,
+      accentLabel,
       setTheme,
-      setPreset,
+      setAccent,
       toggleTheme,
     }),
-    [themeState.currentMode, themeState.preset, setTheme, setPreset, toggleTheme]
+    [
+      themeState.currentMode,
+      themeState.accent,
+      accentLabel,
+      setTheme,
+      setAccent,
+      toggleTheme,
+    ]
   );
 
   return (

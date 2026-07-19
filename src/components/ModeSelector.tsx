@@ -10,30 +10,21 @@ interface ModeSelectorProps {
 export default function ModeSelector({ mode, onChange }: ModeSelectorProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      {MODES.map((m) => (
+      {MODES.map((item) => (
         <button
-          key={m.id}
+          key={item.id}
           type="button"
-          onClick={() => onChange(m.id)}
+          onClick={() => onChange(item.id)}
           className={cn(
             "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-            mode === m.id
+            mode === item.id
               ? "bg-primary text-primary-foreground shadow-sm"
-              : "border border-border bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              : "border border-border bg-card text-foreground hover:bg-muted/60"
           )}
         >
-          {m.label}
+          {item.label}
         </button>
       ))}
     </div>
-  );
-}
-
-export function ModeDescription({ mode }: { mode: CompareMode }) {
-  const info = MODES.find((m) => m.id === mode)!;
-  return (
-    <p className="text-sm leading-relaxed text-muted-foreground">
-      {info.description}
-    </p>
   );
 }
